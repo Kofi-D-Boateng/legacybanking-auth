@@ -14,9 +14,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init(){
-	if os.Getenv("ENV") == "dev" || os.Getenv("ENV") == ""{
-		_,file,_, ok := runtime.Caller(0)
+func init() {
+	if os.Getenv("ENV") == "dev" || os.Getenv("ENV") == "" {
+		_, file, _, ok := runtime.Caller(0)
 		basePath := filepath.Dir(file)
 		fmt.Println(file)
 		fmt.Println(basePath)
@@ -32,18 +32,22 @@ func init(){
 	}
 }
 
-
-func main(){
+func main() {
 	router := routes.Router()
 	port := os.Getenv("PORT")
-	redisAddr := os.Getenv("REDIS_ADDR");
+	redisAddr := os.Getenv("REDIS_ADDR")
+	connStr := os.Getenv("DB_CONN")
+	driverName := os.Getenv("DB_DRIVER")
+	messageBrokerAddr := os.Getenv("MESSAGE_BROKER_ADDR")
 
-	allowedHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept","Authorization","x-forwarded-for", "User-Agent"}) 
+	allowedHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "authorization", "x-forwarded-for", "User-Agent"})
 	allowedOrigins := handlers.AllowedOrigins([]string{os.Getenv("ORIGINS")})
-	allowedMethods := handlers.AllowedMethods([]string{"GET","POST","PUT"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
 
-	utils.ConnectClient(redisAddr,"",0)
-	fmt.Printf("Server listening at port%v \n", port)
-	log.Fatal(http.ListenAndServe(port,handlers.CORS(allowedHeaders,allowedMethods,allowedOrigins)(router)))
+	utils.ConnectRedis(redisAddr, "", 0)
+	utils.ConnectMessageBroker(messageBrokerAddr)
+	utils.ConnectSQLDatabase(driverName, connStr)
+	fmt.Printf("Server listening at port:%v \n", port)
+	log.Fatal(http.ListenAndServe(port, handlers.CORS(allowedHeaders, allowedMethods, allowedOrigins)(router)))
 
 }
