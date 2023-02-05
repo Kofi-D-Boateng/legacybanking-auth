@@ -8,6 +8,7 @@ import (
 )
 
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	authToken := r.Header.Get("authorization")
 
 	if authToken == "" {
@@ -26,6 +27,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func AuthenticateEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	authToken := r.Header.Get("authorization")
 
 	if authToken == "" {

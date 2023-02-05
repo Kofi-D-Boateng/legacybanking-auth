@@ -11,6 +11,7 @@ import (
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var loginRequest struct {
 		Email    string
 		Password string
@@ -80,5 +81,5 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginEmployee(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
 }
