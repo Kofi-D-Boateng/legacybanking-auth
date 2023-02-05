@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kofi-D-Boateng/legacy-banking-api/controllers"
+	"github.com/Kofi-D-Boateng/legacybanking-auth/controllers"
 	"github.com/gorilla/mux"
 )
 

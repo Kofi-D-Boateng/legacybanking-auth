@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/Kofi-D-Boateng/legacy-banking-api/routes"
-	"github.com/Kofi-D-Boateng/legacy-banking-api/utils"
+	"github.com/Kofi-D-Boateng/legacybanking-auth/routes"
+	"github.com/Kofi-D-Boateng/legacybanking-auth/utils"
 	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 )
