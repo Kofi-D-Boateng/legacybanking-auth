@@ -9,11 +9,12 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func CreateJwt(email string) string {
+func CreateJwt(email string) (string, int64) {
 	secret := os.Getenv("JWT_SECRET")
+	timestamp := time.Now().Add(time.Minute * 10).Unix()
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":   "legacybanking-auth.com",
-		"exp":   time.Now().Add(time.Minute * 10).Unix(),
+		"exp":   timestamp,
 		"email": email,
 	})
 
@@ -22,8 +23,7 @@ func CreateJwt(email string) string {
 	if err != nil {
 		log.Fatalf("[ERROR]: Error signing tokens....: %v", err)
 	}
-	fmt.Printf("JWT: %v", signedToken)
-	return signedToken
+	return signedToken, timestamp
 }
 
 func VerifyJwt(hashedToken string) (string, error) {

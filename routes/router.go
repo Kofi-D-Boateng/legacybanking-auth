@@ -9,7 +9,7 @@ import (
 )
 
 func Router() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+	router := mux.NewRouter()
 	apiVersion := os.Getenv("API_VERSION")
 
 	authCustomerUri := fmt.Sprintf("/%s/auth/authenticate-customer", apiVersion)
@@ -17,8 +17,8 @@ func Router() *mux.Router {
 	refreshTokenUri := fmt.Sprintf("/%s/auth/get-refresh-token", apiVersion)
 	confirmUserUri := fmt.Sprintf("/%s/auth/confirm-user-account", apiVersion)
 	logoutUri := fmt.Sprintf("/%s/auth/logout", apiVersion)
-	router.HandleFunc(authCustomerUri, controllers.AuthenticateUser).Methods("POST")
-	router.HandleFunc(authEmployeeUri, controllers.AuthenticateEmployee).Methods("POST")
+	router.HandleFunc(authCustomerUri, controllers.AuthenticateUser).Methods("GET")
+	router.HandleFunc(authEmployeeUri, controllers.AuthenticateEmployee).Methods("GET")
 	router.HandleFunc(logoutUri, controllers.LogoutUser).Methods("GET")
 	router.HandleFunc(refreshTokenUri, controllers.CreateRefreshToken).Methods("GET")
 	router.HandleFunc(confirmUserUri, controllers.ConfirmUser).Methods("GET")

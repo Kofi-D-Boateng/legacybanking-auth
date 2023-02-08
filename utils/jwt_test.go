@@ -9,9 +9,9 @@ func TestCreateJwt(t *testing.T) {
 	os.Setenv("JWT_SECRET", "STUBBLE")
 	email := "myemail@email.com"
 
-	returningValue := CreateJwt(email)
+	returningValue, expiresAt := CreateJwt(email)
 
-	if returningValue != "" {
+	if returningValue != "" && expiresAt > 0 {
 		t.Log("Passed CreateJwt")
 	} else {
 		t.Error("Failed CreateJwt")
@@ -22,9 +22,9 @@ func TestVerifyJwt(t *testing.T) {
 	os.Setenv("JWT_SECRET", "STUBBLE")
 	email := "myemail@email.com"
 
-	returningValue := CreateJwt(email)
+	returningValue, expiresAt := CreateJwt(email)
 
-	if returningValue == "" {
+	if returningValue != "" && expiresAt > 0 {
 		t.Error("Failed CreateJwt")
 	}
 

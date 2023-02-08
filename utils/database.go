@@ -1,20 +1,27 @@
 package utils
 
 import (
-	"database/sql"
 	"log"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-var DatabaseConn *sql.Conn
+var DatabaseConn *sqlx.DB
 
 func ConnectSQLDatabase(driverName string, connStr string) {
-	DatabaseConn, err := sql.Open(driverName, connStr)
+
+	conn, err := sqlx.Open(driverName, connStr)
 
 	if err != nil {
 		log.Fatalf("[ERROR]: Connection to %s database using connection string: %s did not work...", driverName, connStr)
 	}
 
-	defer DatabaseConn.Close()
+	err = conn.Ping()
+	if err != nil {
+		log.Fatalf("[ERROR]: Cannot ping db: %v", err)
+		panic(err)
+	}
+
+	DatabaseConn = conn
 }

@@ -9,11 +9,10 @@ import (
 var RabbitMq *amqp.Connection
 
 func ConnectMessageBroker(addr string) {
-	rabbitMq, err := amqp.Dial(addr)
+	conn, err := amqp.Dial(addr)
 
 	if err != nil {
 		log.Fatal("Failed to connect to RabbitMQ")
 	}
-
-	defer rabbitMq.Close()
+	RabbitMq = conn
 }
