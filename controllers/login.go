@@ -20,8 +20,9 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var returnedValue struct {
-		Email    string
-		Password string
+		Email       string
+		Password    string
+		IsActivated bool
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -33,8 +34,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := "SELECT email,password FROM customer WHERE email = $1;"
-	queryErr := utils.DatabaseConn.QueryRow(query, loginRequest.Email).Scan(&returnedValue.Email, &returnedValue.Password)
+	query := "SELECT email,password,is_activated FROM customer WHERE email = $1;"
+	queryErr := utils.DatabaseConn.QueryRow(query, loginRequest.Email).Scan(&returnedValue.Email, &returnedValue.Password, &returnedValue.IsActivated)
 
 	if queryErr != nil {
 		fmt.Printf("[ERROR]: Error querying database....: %v", queryErr)
@@ -56,11 +57,13 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		AuthToken       string
 		ApiKey          string
 		TokenExpiration int64
+		IsActivated     bool
 	}
 
 	returningValues.AuthToken = jwtToken
 	returningValues.ApiKey = uuid.New().String()
 	returningValues.TokenExpiration = expiresAt
+	returningValues.IsActivated = returnedValue.IsActivated
 
 	redisErr := utils.RedisClient.Set(context.Background(), returningValues.ApiKey, returnedValue.Email, 0).Err()
 	if redisErr != nil {

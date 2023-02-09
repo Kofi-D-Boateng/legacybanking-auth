@@ -10,7 +10,6 @@ import (
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authToken := r.URL.Query().Get("token")
-	fmt.Println(authToken)
 	if authToken == "" {
 		fmt.Print("Authorization token is not present")
 
