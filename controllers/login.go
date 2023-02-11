@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,69 +13,62 @@ import (
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	var loginRequest struct {
 		Email    string
 		Password string
 	}
 
-	decoder := json.NewDecoder(r.Body)
+	var returnedValue struct {
+		Email       string
+		Password    string
+		IsActivated bool
+	}
 
+	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&loginRequest)
 
 	if err != nil {
 		fmt.Println("[ERROR]: There was an error retrieving email and password variables....: ", err)
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	query := "SELECT * FROM customer WHERE email = $1;"
-	stmt, err := utils.DatabaseConn.PrepareContext(r.Context(), query)
+	query := "SELECT email,password,is_activated FROM customer WHERE email = $1;"
+	queryErr := utils.DatabaseConn.QueryRow(query, loginRequest.Email).Scan(&returnedValue.Email, &returnedValue.Password, &returnedValue.IsActivated)
 
-	if err != nil {
-		fmt.Printf("[ERROR]: Error preparing PrepareContext statement....:%v", err)
+	if queryErr != nil {
+		fmt.Printf("[ERROR]: Error querying database....: %v", queryErr)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	defer stmt.Close()
-
-	rows, err := stmt.Query(loginRequest.Email)
-
-	if err != nil {
-		fmt.Printf("[ERROR]: Error querying database....: %v", err)
-	}
-
-	defer rows.Close()
-
-	var returnedValue struct {
-		email    string
-		password string
-	}
-
-	for rows.Next() {
-		if err := rows.Scan(&returnedValue); err != nil {
-			fmt.Printf("[ERROR]: Error mapping struct to retieve email and password...: %v", err)
-		}
-	}
-
-	mismatchPassword := bcrypt.CompareHashAndPassword([]byte(loginRequest.Password), []byte(returnedValue.password))
+	mismatchPassword := bcrypt.CompareHashAndPassword([]byte(returnedValue.Password), []byte(loginRequest.Password))
 
 	if mismatchPassword != nil {
-		fmt.Println("[ERROR]: Password does not match hashed password")
+		fmt.Printf("[ERROR]: Password does not match hashed password: %v\n", mismatchPassword)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	jwtToken := utils.CreateJwt(returnedValue.email)
+	jwtToken, expiresAt := utils.CreateJwt(returnedValue.Email)
 
 	var returningValues struct {
-		Email     string
-		AuthToken string
-		ApiKey    string
+		AuthToken       string
+		ApiKey          string
+		TokenExpiration int64
+		IsActivated     bool
 	}
 
-	returningValues.Email = returnedValue.email
 	returningValues.AuthToken = jwtToken
 	returningValues.ApiKey = uuid.New().String()
+	returningValues.TokenExpiration = expiresAt
+	returningValues.IsActivated = returnedValue.IsActivated
 
+	redisErr := utils.RedisClient.Set(context.Background(), returningValues.ApiKey, returnedValue.Email, 0).Err()
+	if redisErr != nil {
+		panic(redisErr)
+	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(returningValues)
 

@@ -9,18 +9,19 @@ import (
 
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	authToken := r.Header.Get("authorization")
-
+	authToken := r.URL.Query().Get("token")
 	if authToken == "" {
 		fmt.Print("Authorization token is not present")
 
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	_, err := utils.VerifyJwt(authToken)
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -28,12 +29,13 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 func AuthenticateEmployee(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	authToken := r.Header.Get("authorization")
+	authToken := r.URL.Query().Get("token")
 
 	if authToken == "" {
 		fmt.Print("Authorization token is not present")
 
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 	// FOR NOW WE WILL RETURN TRUE
 	// THIS CAN BE CURTAILED TO USE
