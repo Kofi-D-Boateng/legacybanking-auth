@@ -24,7 +24,7 @@ jobs:
       - name: Build image and push to docker
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
-          image: kdboateng/lb-notifications-go
+          image: kdboateng/lb-auth
           tags: 1.0.0, latest
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
