@@ -15,7 +15,6 @@ import (
 )
 
 func init() {
-	os.Setenv("ENV", "dev")
 	if os.Getenv("ENV") == "dev" {
 		_, file, _, ok := runtime.Caller(0)
 		basePath := filepath.Dir(file)
