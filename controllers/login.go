@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,47 +10,48 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func LoginUser(payload json.RawMessage)(utils.Response,error) {
 
 	var loginRequest struct {
-		Email    string
-		Password string
+		Email    string `json:"email"`
+		Password string	`json:"password"`
 	}
-
+	
 	var returnedValue struct {
 		Email       string
 		Password    string
 		IsActivated bool
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&loginRequest)
+	err := json.Unmarshal(payload,&loginRequest)
 
-	if err != nil {
-		fmt.Println("[ERROR]: There was an error retrieving email and password variables....: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if err != nil{
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body:[]byte("")},err
 	}
+
+	fmt.Printf("LoginRequest --> %v",loginRequest)
 
 	query := "SELECT email,password,is_activated FROM customer WHERE email = $1;"
 	queryErr := utils.DatabaseConn.QueryRow(query, loginRequest.Email).Scan(&returnedValue.Email, &returnedValue.Password, &returnedValue.IsActivated)
 
 	if queryErr != nil {
 		fmt.Printf("[ERROR]: Error querying database....: %v", queryErr)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},queryErr
 	}
+	
+	fmt.Printf("Queried Data --> %v",returnedValue)
 
 	mismatchPassword := bcrypt.CompareHashAndPassword([]byte(returnedValue.Password), []byte(loginRequest.Password))
 
 	if mismatchPassword != nil {
 		fmt.Printf("[ERROR]: Password does not match hashed password: %v\n", mismatchPassword)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body:[]byte("")},mismatchPassword
 	}
 
+
 	jwtToken, expiresAt := utils.CreateJwt(returnedValue.Email)
+
+	fmt.Println("Successful JWT creation....")
 
 	var returningValues struct {
 		AuthToken       string
@@ -65,15 +65,11 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	returningValues.TokenExpiration = expiresAt
 	returningValues.IsActivated = returnedValue.IsActivated
 
-	redisErr := utils.RedisClient.Set(context.Background(), returningValues.ApiKey, returnedValue.Email, 0).Err()
-	if redisErr != nil {
-		panic(redisErr)
-	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(returningValues)
+	rv,_ := json.Marshal(returningValues)
+	return utils.Response{StatusCode: http.StatusOK,Body: rv},nil
 
 }
 
-func LoginEmployee(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func LoginEmployee(payload interface{})(utils.Response,error) {
+	return utils.Response{},nil
 }

@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
-	"github.com/Kofi-D-Boateng/legacybanking-auth/routes"
+	"github.com/Kofi-D-Boateng/legacybanking-auth/controllers"
 	"github.com/Kofi-D-Boateng/legacybanking-auth/utils"
-	"github.com/gorilla/handlers"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/joho/godotenv"
 )
 
@@ -33,22 +34,35 @@ func init() {
 }
 
 func main() {
-	router := routes.Router()
-	port := os.Getenv("PORT")
-	redisAddr := os.Getenv("REDIS_ADDR")
+
 	connStr := os.Getenv("DB_CONN")
 	driverName := os.Getenv("DB_DRIVER")
 
-	allowedHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "authorization", "x-forwarded-for", "User-Agent"})
-	allowedOrigins := handlers.AllowedOrigins([]string{os.Getenv("ORIGINS")})
-	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
-
-	utils.ConnectRedis(redisAddr, "", 0)
 	utils.ConnectSQLDatabase(driverName, connStr)
 	defer utils.DatabaseConn.Close()
-	defer utils.RedisClient.Close()
-	defer utils.RabbitMq.Close()
-	fmt.Printf("Server listening at port:%v \n", port)
-	log.Fatal(http.ListenAndServe(port, handlers.CORS(allowedHeaders, allowedMethods, allowedOrigins)(router)))
-
+	lambda.Start(handler)
 }
+
+
+func handler(ctx context.Context, req utils.Request) (utils.Response,error){
+
+		fmt.Printf("Request --> %v\n",req)
+		
+		switch req.Function{
+			case "authenticateUser":
+				return controllers.AuthenticateUser(req.Payload)
+			case "authenticateEmployee":
+				return controllers.AuthenticateEmployee(req.Payload)
+			case "loginUser":
+				return controllers.LoginUser(req.Payload)
+			case "loginEmployee":
+				return controllers.LoginEmployee(req.Payload)	
+			case "confirmUser":
+				return controllers.ConfirmUser(req.Payload)
+			case "getRefreshToken":
+				return controllers.CreateRefreshToken(req.Payload)
+			default:
+				return utils.Response{},errors.New("unknown function")				
+		}
+	
+	}
