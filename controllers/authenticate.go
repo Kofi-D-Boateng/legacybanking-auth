@@ -1,45 +1,35 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 
 	"github.com/Kofi-D-Boateng/legacybanking-auth/utils"
 )
 
-func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	authToken := r.URL.Query().Get("token")
-	if authToken == "" {
-		fmt.Print("Authorization token is not present")
+func AuthenticateUser(paylod json.RawMessage) (utils.Response,error) {
 
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+	var authToken string
+	err:= json.Unmarshal(paylod,&authToken)
+	if err != nil{
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},err
 	}
-
-	_, err := utils.VerifyJwt(authToken)
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	_, jwtErr := utils.VerifyJwt(authToken)
+		if jwtErr != nil {
+			return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
+		}
+		return utils.Response{StatusCode: http.StatusOK,Body: []byte("")},nil
 }
 
-func AuthenticateEmployee(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	authToken := r.URL.Query().Get("token")
-
-	if authToken == "" {
-		fmt.Print("Authorization token is not present")
-
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+func AuthenticateEmployee(paylod json.RawMessage)(utils.Response,error) {
+	var authToken string
+	err:= json.Unmarshal(paylod,&authToken)
+	if err != nil{
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},err
 	}
-	// FOR NOW WE WILL RETURN TRUE
-	// THIS CAN BE CURTAILED TO USE
-	// JWT OR LDAP
-
-	w.WriteHeader(http.StatusOK)
+	_, jwtErr := utils.VerifyJwt(authToken)
+		if jwtErr != nil {
+			return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
+		}
+		return utils.Response{StatusCode: http.StatusOK,Body: []byte("")},nil
 }

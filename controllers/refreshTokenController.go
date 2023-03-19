@@ -1,7 +1,9 @@
 package controllers
 
-import "net/http"
+import (
+	"github.com/Kofi-D-Boateng/legacybanking-auth/utils"
+)
 
-func CreateRefreshToken(w http.ResponseWriter, r *http.Request){
-
+func CreateRefreshToken(payload interface{})(utils.Response,error){
+	return utils.Response{},nil
 }
