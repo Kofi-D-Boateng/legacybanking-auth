@@ -14,11 +14,11 @@ func AuthenticateUser(paylod json.RawMessage) (utils.Response,error) {
 	if err != nil{
 		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},err
 	}
-	_, jwtErr := utils.VerifyJwt(authToken)
-		if jwtErr != nil {
-			return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
-		}
-		return utils.Response{StatusCode: http.StatusOK,Body: []byte("")},nil
+	email, jwtErr := utils.VerifyJwt(authToken)
+	if jwtErr != nil {
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
+	}
+	return utils.Response{StatusCode: http.StatusOK,Body: []byte(email)},nil
 }
 
 func AuthenticateEmployee(paylod json.RawMessage)(utils.Response,error) {
@@ -27,9 +27,9 @@ func AuthenticateEmployee(paylod json.RawMessage)(utils.Response,error) {
 	if err != nil{
 		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},err
 	}
-	_, jwtErr := utils.VerifyJwt(authToken)
-		if jwtErr != nil {
-			return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
-		}
-		return utils.Response{StatusCode: http.StatusOK,Body: []byte("")},nil
+	email, jwtErr := utils.VerifyJwt(authToken)
+	if jwtErr != nil {
+		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
+	}
+	return utils.Response{StatusCode: http.StatusOK,Body: []byte(email)},nil
 }
