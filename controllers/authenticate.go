@@ -18,7 +18,8 @@ func AuthenticateUser(paylod json.RawMessage) (utils.Response,error) {
 	if jwtErr != nil {
 		return utils.Response{StatusCode: http.StatusUnauthorized,Body: []byte("")},nil
 	}
-	return utils.Response{StatusCode: http.StatusOK,Body: []byte(email)},nil
+	t,_ := json.Marshal(email)
+	return utils.Response{StatusCode: http.StatusOK,Body:t },nil
 }
 
 func AuthenticateEmployee(paylod json.RawMessage)(utils.Response,error) {
